@@ -1,0 +1,28 @@
+# Hardened OpenClaw Gateway Compose Template (2026)
+# Guide: https://www.vpsort.com/3354.html
+#
+# Security defaults enforced:
+# 1. Binds gateway port 18789 strictly to 127.0.0.1 (prevents Docker UFW bypass)
+# 2. Enables OPENCLAW_CONFIG_READONLY=1 (available in v2026.9.4+)
+# 3. Enforces memory cap so headless tasks cannot OOM-kill SSH
+# 4. Run via non-root user in `docker` group; keep `.env` chmod 600
+
+services:
+  openclaw:
+    image: ghcr.io/openclaw/openclaw:2026.9.4
+    container_name: openclaw-gateway
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18789:18789"
+    env_file:
+      - .env
+    environment:
+      - OPENCLAW_CONFIG_READONLY=1
+    volumes:
+      - ./openclaw-data:/home/node/.openclaw
+    mem_limit: 3072m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
